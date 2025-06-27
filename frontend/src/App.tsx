@@ -1,19 +1,28 @@
-import { useState } from "react";
+import { BrowserRouter, Route, Routes } from "react-router";
 
-import { Button } from "@/components/ui/button";
+import MainLayout from "@/layouts/MainLayout";
+import Editor from "@/pages/Editor";
+import Home from "@/pages/Home";
+import Login from "@/pages/Login";
+import Profile from "@/pages/Profile";
+import Register from "@/pages/Register";
+import Settings from "@/pages/Settings";
 
 function App() {
-  const [count, setCount] = useState(0);
-
-  function handleClick() {
-    setCount(count + 1);
-  }
-
   return (
-    <div className="grid min-h-screen place-items-center content-center space-y-2">
-      <h1>Count: {count}</h1>
-      <Button onClick={handleClick}>Click Me!</Button>
-    </div>
+    <BrowserRouter>
+      <Routes>
+        <Route element={<MainLayout />}>
+          <Route path="/" element={<Home />} />
+          <Route path="/login" element={<Login />} />
+          <Route path="/register" element={<Register />} />
+          {/* Should be protected routes */}
+          <Route path="/editor" element={<Editor />} />
+          <Route path="/settings" element={<Settings />} />
+          <Route path="/profile/:username" element={<Profile />} />
+        </Route>
+      </Routes>
+    </BrowserRouter>
   );
 }
 
