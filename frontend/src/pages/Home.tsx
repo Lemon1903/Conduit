@@ -1,4 +1,37 @@
+import React from "react";
+import { useSearchParams } from "react-router";
+
+import {
+  Pagination,
+  PaginationContent,
+  PaginationEllipsis,
+  PaginationItem,
+  PaginationLink,
+  PaginationNext,
+  PaginationPrevious,
+} from "@/components/ui/pagination";
+
+const articlesCount = 110;
+const articlesPerPage = 10;
+const maxPaginationLimit = 6;
+const minPaginationLimit = 3;
+const maxPagination = Math.ceil(articlesCount / articlesPerPage);
+const minPaginationNumber = Math.min(maxPagination, minPaginationLimit);
+
 function Home() {
+  const [searchParams] = useSearchParams();
+
+  const page = parseInt(searchParams.get("page") || "1");
+
+  if (isNaN(page) || page > maxPagination) {
+    return (
+      <div className="container">
+        <h1>Page not found</h1>
+        <p>The page you are looking for does not exist.</p>
+      </div>
+    );
+  }
+
   return (
     <div className="home-page">
       <div className="banner">
@@ -25,7 +58,6 @@ function Home() {
                 </li>
               </ul>
             </div>
-
             <div className="article-preview">
               <div className="article-meta">
                 <a href="/profile/eric-simons">
@@ -51,7 +83,6 @@ function Home() {
                 </ul>
               </a>
             </div>
-
             <div className="article-preview">
               <div className="article-meta">
                 <a href="/profile/albert-pai">
@@ -77,19 +108,83 @@ function Home() {
                 </ul>
               </a>
             </div>
+            {/* Still WIP */}
+            {articlesCount > 10 && (
+              <Pagination>
+                <PaginationContent>
+                  <PaginationItem>
+                    <PaginationPrevious href={`?page=${Math.max(page - 1, 1)}`} />
+                  </PaginationItem>
+                  {/* pagination numbers (e.g. 1 2 3 4 5 6 ... 10 11 12) if e.g. current page = 4 */}
+                  {Array.from(
+                    {
+                      length:
+                        page > maxPaginationLimit
+                          ? minPaginationLimit
+                          : Math.min(
+                              maxPagination - minPaginationLimit,
+                              Math.max(page + 1, minPaginationLimit),
+                            ),
+                    },
+                    (_, index) => (
+                      <PaginationItem key={index}>
+                        <PaginationLink isActive={page === index + 1} href={`?page=${index + 1}`}>
+                          {index + 1}
+                        </PaginationLink>
+                      </PaginationItem>
+                    ),
+                  )}
+                  {((page + 1 < maxPagination - minPaginationLimit &&
+                    maxPagination - minPaginationLimit > minPaginationLimit) ||
+                    page > maxPaginationLimit) && (
+                    <PaginationItem>
+                      <PaginationEllipsis
+                        href={`?page=${Math.min(page + (page > maxPaginationLimit ? -2 : 2), maxPagination)}`}
+                      />
+                    </PaginationItem>
+                  )}
+                  {/* pagination numbers (e.g. 1 2 3 ... 6 7 8 ... 10 11 12 ) if e.g. current page = 7 */}
+                  {page > maxPaginationLimit && (
+                    <React.Fragment>
+                      {Array.from(
+                        { length: Math.min(maxPagination - page - 1, minPaginationLimit) },
+                        (_, index) => (
+                          <PaginationItem key={page + index - 1}>
+                            <PaginationLink
+                              isActive={page === page + index - 1}
+                              href={`?page=${page + index - 1}`}
+                            >
+                              {page + index - 1}
+                            </PaginationLink>
+                          </PaginationItem>
+                        ),
+                      )}
+                      {/* hidden (1 2 3 ... 8 9 10 11 12 13) if e.g current page = 9 */}
+                      {page + 1 < maxPagination - minPaginationLimit && (
+                        <PaginationItem>
+                          <PaginationEllipsis href={`?page=${page + 2}`} />
+                        </PaginationItem>
+                      )}
+                    </React.Fragment>
+                  )}
+                  {/* last pagination numbers (e.g. 1 2 3 ... 8 9 10) */}
+                  {Array.from({ length: minPaginationNumber }, (_, index) => {
+                    const number = Math.max(maxPagination - minPaginationLimit, 0) + index + 1;
 
-            <ul className="pagination">
-              <li className="page-item active">
-                <a className="page-link" href="">
-                  1
-                </a>
-              </li>
-              <li className="page-item">
-                <a className="page-link" href="">
-                  2
-                </a>
-              </li>
-            </ul>
+                    return (
+                      <PaginationItem key={number}>
+                        <PaginationLink isActive={page === number} href={`?page=${number}`}>
+                          {number}
+                        </PaginationLink>
+                      </PaginationItem>
+                    );
+                  })}
+                  <PaginationItem>
+                    <PaginationNext href={`?page=${Math.min(page + 1, maxPagination)}`} />
+                  </PaginationItem>
+                </PaginationContent>
+              </Pagination>
+            )}
           </div>
 
           <div className="col-md-3">
