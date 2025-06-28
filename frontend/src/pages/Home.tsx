@@ -108,7 +108,6 @@ function Home() {
                 </ul>
               </a>
             </div>
-            {/* Still WIP */}
             {articlesCount > 10 && (
               <Pagination>
                 <PaginationContent>

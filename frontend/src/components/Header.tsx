@@ -27,12 +27,12 @@ const links: Link[] = [
 
 // debugging
 function getCurrentUser(): User | null {
-  return {
-    username: "johndoe",
-    email: "john@example.com",
-    image: "https://static.productionready.io/images/smiley-cyrus.jpg",
-  };
-  // return null;
+  // return {
+  //   username: "johndoe",
+  //   email: "john@example.com",
+  //   image: "https://static.productionready.io/images/smiley-cyrus.jpg",
+  // };
+  return null;
 }
 
 function Header() {
