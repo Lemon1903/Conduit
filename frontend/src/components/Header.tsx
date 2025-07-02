@@ -1,19 +1,15 @@
-import { useLocation } from "react-router";
-
-import { cn } from "@/lib/utils";
 import React from "react";
+import { NavLink } from "react-router";
+
+import { DEFAULT_IMAGE_URL } from "@/constants";
+import { cn } from "@/lib/utils";
+import { userStore } from "@/stores/userStore";
 
 type Link = {
   name: string;
   path: string;
   visibility: "public" | "guest" | "user";
   icon: string | null;
-};
-
-type User = {
-  username: string;
-  email: string;
-  image: string;
 };
 
 const links: Link[] = [
@@ -25,20 +21,8 @@ const links: Link[] = [
   { name: "Profile", path: "/profile", visibility: "user", icon: null },
 ];
 
-// debugging
-function getCurrentUser(): User | null {
-  // return {
-  //   username: "johndoe",
-  //   email: "john@example.com",
-  //   image: "https://static.productionready.io/images/smiley-cyrus.jpg",
-  // };
-  return null;
-}
-
 function Header() {
-  const location = useLocation();
-
-  const user = getCurrentUser();
+  const { user } = userStore();
   const isAuthenticated = !!user;
   const visibleLinks = links.filter((link) => {
     switch (link.visibility) {
@@ -50,11 +34,6 @@ function Header() {
         return isAuthenticated;
     }
   });
-
-  function isActive(path: string) {
-    const pathname = "/" + location.pathname.split("/")[1];
-    return pathname === path;
-  }
 
   function getFullPath(path: string) {
     if (isAuthenticated && path == "/profile") {
@@ -72,15 +51,15 @@ function Header() {
         <ul className="nav navbar-nav pull-xs-right">
           {visibleLinks.map((link) => (
             <li key={link.path} className="nav-item">
-              <a
-                className={cn("nav-link", isActive(link.path) && "active")}
-                href={getFullPath(link.path)}
+              <NavLink
+                to={getFullPath(link.path)}
+                className={({ isActive }) => cn("nav-link", isActive && "active")}
               >
                 <div className="flex items-center gap-1.5">
                   {link.path === "/profile" && isAuthenticated ? (
                     <React.Fragment>
                       <div className="size-6 overflow-hidden rounded-full">
-                        <img src={user.image} alt={user.username} />
+                        <img src={DEFAULT_IMAGE_URL} alt={user.username} />
                       </div>
                       <span>{user.username}</span>
                     </React.Fragment>
@@ -91,7 +70,7 @@ function Header() {
                     </React.Fragment>
                   )}
                 </div>
-              </a>
+              </NavLink>
             </li>
           ))}
         </ul>

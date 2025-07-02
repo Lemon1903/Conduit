@@ -1,13 +1,17 @@
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useMutation } from "@tanstack/react-query";
-import axios, { AxiosError } from "axios";
+import { AxiosError } from "axios";
+import { useState } from "react";
 import { useForm } from "react-hook-form";
+import { Link, useNavigate } from "react-router";
 import { toast } from "sonner";
 import * as z from "zod/v4";
 
 import { Button } from "@/components/ui/button";
 import { Form, FormControl, FormField, FormItem, FormMessage } from "@/components/ui/form";
 import { Input } from "@/components/ui/input";
+import { api } from "@/lib/api";
+import { getErrorMessage } from "@/lib/utils";
 
 const formSchema = z.object({
   username: z.string().min(2, {
@@ -28,11 +32,6 @@ const formSchema = z.object({
     }),
 });
 
-async function registerUser(userData: z.infer<typeof formSchema>) {
-  const response = await axios.post(`${import.meta.env.VITE_API_URL}/auth/register/`, userData);
-  return response.data;
-}
-
 function Register() {
   const form = useForm<z.infer<typeof formSchema>>({
     resolver: zodResolver(formSchema),
@@ -43,30 +42,36 @@ function Register() {
     },
   });
 
+  const navigate = useNavigate();
+  const [errorMessage, setErrorMessage] = useState<string>("");
+
   const mutation = useMutation({
-    mutationFn: registerUser,
-    onSuccess: (data) => {
-      console.log(data);
+    mutationFn: async (userData: z.infer<typeof formSchema>) => {
+      const response = await api.post(`/users/`, userData);
+      return response.data;
+    },
+    onSuccess: () => {
+      form.reset();
+      toast.success("Account created successfully! You can now log in.");
+      setErrorMessage("");
+      navigate("/login");
     },
     onError: (error: AxiosError) => {
-      console.error(error);
       if (error.status === 400) {
-        toast.error("Registration failed: Please check your credentials and try again.");
-        const messages = error.response?.data;
-        if (messages) {
-          Object.entries(messages).forEach(([key, value]) => {
-            const message = value[0];
-            form.setError(key as keyof z.infer<typeof formSchema>, {
-              type: "manual",
-              message: message.charAt(0).toUpperCase() + message.slice(1),
-            });
-          });
-        }
-      } else if (error.code === "ERR_BAD_REQUEST") {
-        toast.error("Network error: Please try again.");
-      } else {
-        toast.error(error.message);
+        setErrorMessage(getErrorMessage(error.response?.data));
       }
+      // if (error.status === 400) {
+      //   const messages = error.response?.data;
+      //   if (messages) {
+      //     Object.entries(messages).forEach(([key, value]) => {
+      //       const message = value[0];
+      //       form.setError(key as keyof z.infer<typeof formSchema>, {
+      //         type: "manual",
+      //         message: message.charAt(0).toUpperCase() + message.slice(1),
+      //       });
+      //     });
+      //   }
+      // }
     },
   });
 
@@ -81,8 +86,12 @@ function Register() {
           <div className="col-md-6 offset-md-3 col-xs-12">
             <h1 className="text-xs-center">Sign up</h1>
             <p className="text-xs-center">
-              <a href="/login">Have an account?</a>
+              <Link to="/login">Have an account?</Link>
             </p>
+
+            <ul className="error-messages">
+              <li className="text-center">{errorMessage}</li>
+            </ul>
 
             <Form {...form}>
               <form className="space-y-4" onSubmit={form.handleSubmit(onSubmit)}>
@@ -133,7 +142,7 @@ function Register() {
                   className="float-right"
                   disabled={mutation.isPending}
                 >
-                  Sign Up
+                  {mutation.isPending ? "Signing up..." : "Sign up"}
                 </Button>
               </form>
             </Form>
