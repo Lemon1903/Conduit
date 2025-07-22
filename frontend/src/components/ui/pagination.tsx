@@ -33,16 +33,17 @@ function PaginationItem({ ...props }: React.ComponentProps<"li">) {
 type PaginationLinkProps = {
   isActive?: boolean;
 } & Pick<React.ComponentProps<typeof Button>, "size"> &
-  React.ComponentProps<"a">;
+  React.ComponentProps<typeof Button>;
 
 function PaginationLink({ className, isActive, size = "icon", ...props }: PaginationLinkProps) {
   return (
-    <a
+    <Button
       aria-current={isActive ? "page" : undefined}
       data-slot="pagination-link"
       data-active={isActive}
+      variant="ghost"
       className={cn(
-        "page-link grid h-full place-items-center rounded-none",
+        "page-link grid h-full place-items-center !rounded-none aria-disabled:pointer-events-none aria-disabled:opacity-50",
         isActive && "bg-primary",
         className,
       )}

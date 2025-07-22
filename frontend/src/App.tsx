@@ -1,35 +1,76 @@
-import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
+import React, { useEffect } from "react";
 import { BrowserRouter, Route, Routes } from "react-router";
 
 import { Toaster } from "@/components/ui/sonner";
-import MainLayout from "@/layouts/MainLayout";
-import Editor from "@/pages/Editor";
-import Home from "@/pages/Home";
-import Login from "@/pages/Login";
-import Profile from "@/pages/Profile";
-import Register from "@/pages/Register";
-import Settings from "@/pages/Settings";
+import { HomeLayout, MainLayout, PrivateRouteLayout, ProfileLayout } from "@/layouts";
+import {
+  ArticleDetails,
+  Editor,
+  FavoritedArticles,
+  GlobalFeed,
+  Login,
+  NotFound,
+  Register,
+  Settings,
+  UserArticles,
+  UserFeed,
+} from "@/pages";
 
-const queryClient = new QueryClient();
+import { getUser } from "@/lib/api";
+import { clearAccessToken, refreshAccessToken, setAccessToken } from "@/lib/auth";
+import { userStore } from "@/stores/userStore";
 
 function App() {
+  const { setUser, clearUser, setIsAuthInitialized } = userStore();
+
+  // Silent Login
+  useEffect(() => {
+    async function initSession() {
+      try {
+        const newToken = await refreshAccessToken();
+        setAccessToken(newToken);
+        const user = await getUser();
+        setUser(user);
+      } catch (error) {
+        clearAccessToken();
+        clearUser();
+      } finally {
+        setIsAuthInitialized(true);
+      }
+    }
+
+    initSession();
+  }, []);
+
   return (
-    <QueryClientProvider client={queryClient}>
+    <React.Fragment>
       <BrowserRouter>
         <Routes>
           <Route element={<MainLayout />}>
-            <Route path="/" element={<Home />} />
+            <Route path="/" element={<HomeLayout />}>
+              <Route element={<PrivateRouteLayout />}>
+                <Route path="feed" element={<UserFeed />} />
+              </Route>
+              <Route path="" element={<GlobalFeed />} />
+            </Route>
             <Route path="/login" element={<Login />} />
             <Route path="/register" element={<Register />} />
-            {/* Should be protected routes */}
-            <Route path="/editor" element={<Editor />} />
-            <Route path="/settings" element={<Settings />} />
-            <Route path="/profile/:username" element={<Profile />} />
+            <Route element={<PrivateRouteLayout />}>
+              <Route path="/editor" element={<Editor />} />
+              <Route path="/editor/:slug" element={<Editor />} />
+              <Route path="/settings" element={<Settings />} />
+            </Route>
+            <Route path="/profile/:username" element={<ProfileLayout />}>
+              <Route path="" element={<UserArticles />} />
+              <Route path="favorites" element={<FavoritedArticles />} />
+            </Route>
+            <Route path="/article/:slug" element={<ArticleDetails />} />
           </Route>
+          <Route path="*" element={<NotFound />} />
         </Routes>
       </BrowserRouter>
       <Toaster />
-    </QueryClientProvider>
+    </React.Fragment>
   );
 }
 

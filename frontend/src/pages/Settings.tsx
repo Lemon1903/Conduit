@@ -1,5 +1,5 @@
 import { zodResolver } from "@hookform/resolvers/zod";
-import { useMutation, useQuery } from "@tanstack/react-query";
+import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { useForm } from "react-hook-form";
 import { useNavigate } from "react-router";
 import { toast } from "sonner";
@@ -9,116 +9,57 @@ import { Button } from "@/components/ui/button";
 import { Form, FormControl, FormField, FormItem, FormMessage } from "@/components/ui/form";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
-import { api, clearAccessToken } from "@/lib/api";
+import { BASE_PROFILE_KEY } from "@/constants";
+import { logout, updateProfile } from "@/lib/api";
+import { clearAccessToken } from "@/lib/auth";
+import profileSchema from "@/schemas/profileSchema";
+import { pageStore } from "@/stores/pageStore";
 import { userStore } from "@/stores/userStore";
-import type { Profile } from "@/types";
-import { useEffect } from "react";
-
-const formSchema = z.object({
-  image: z.string().refine((val) => val === "" || z.url().safeParse(val).success, {
-    message: "Must be a valid URL",
-  }),
-  username: z.string().min(2, {
-    message: "Username must be at least 2 characters.",
-  }),
-  bio: z.string(),
-  email: z.email(),
-  password: z
-    .string()
-    .refine((password) => password === "" || password.length >= 8, {
-      message: "Password must be at least 8 characters.",
-    })
-    .refine((password) => password === "" || /[A-Z]/.test(password), {
-      message: "Password must contain an uppercase letter.",
-    })
-    .refine((password) => password === "" || /[0-9]/.test(password), {
-      message: "Password must contain a number.",
-    })
-    .refine((password) => password === "" || /[!@#$%^&*]/.test(password), {
-      message: "Password must contain a special character.",
-    }),
-});
 
 function Settings() {
   const navigate = useNavigate();
   const { user, setUser } = userStore();
-  const { data, isPending, isError } = useQuery<Profile>({
-    queryKey: ["user"],
-    queryFn: async () => {
-      if (!user) {
-        throw new Error("User is not authenticated");
-      }
+  const clearPages = pageStore((state) => state.clearPages);
+  const queryClient = useQueryClient();
 
-      try {
-        const response = await api.get(`/profiles/${user.username}`);
-        return response.data;
-      } catch (error) {
-        console.error("Error fetching user data:", error);
-        throw error;
-      }
-    },
-  });
-
-  const form = useForm<z.infer<typeof formSchema>>({
-    resolver: zodResolver(formSchema),
-    defaultValues: {
-      image: "",
-      username: "",
-      bio: "",
-      email: "",
-      password: "",
+  const form = useForm<z.infer<typeof profileSchema>>({
+    resolver: zodResolver(profileSchema),
+    values: {
+      image: user?.image ?? "",
+      username: user?.username ?? "",
+      bio: user?.bio ?? "",
+      email: user?.email ?? "",
     },
   });
 
   const logoutMutation = useMutation({
-    mutationFn: async () => {
-      await api.post("/users/logout/");
-    },
+    mutationFn: logout,
     onSuccess: () => {
       toast.success("Logged out succesfully!");
       setUser(null);
       clearAccessToken();
-      navigate("/");
+      // queryClient.clear();
+      clearPages();
+      navigate("/login", { replace: true });
     },
   });
 
   const updateProfileMutation = useMutation({
-    mutationFn: async (values: z.infer<typeof formSchema>) => {
-      console.log("Updating profile with values:", values);
-      const response = await api.patch("/user/", values);
-      return response.data;
-    },
-    onSuccess: (data) => {
+    mutationFn: updateProfile,
+    onSuccess: (user) => {
       toast.success("Profile updated successfully!");
-      setUser({ username: data.username, email: data.email });
-      form.reset();
+      setUser(user);
+      queryClient.invalidateQueries({
+        queryKey: [BASE_PROFILE_KEY, user.username],
+      });
     },
     onError: () => {
       toast.error("Failed to update profile. Please try again.");
     },
   });
 
-  useEffect(() => {
-    if (data) {
-      form.reset({
-        ...data,
-        image: data.image ?? "",
-        bio: data.bio ?? "",
-        password: "",
-      });
-    }
-  }, [data]);
-
-  function onSubmit(values: z.infer<typeof formSchema>) {
+  function onSubmit(values: z.infer<typeof profileSchema>) {
     updateProfileMutation.mutate(values);
-  }
-
-  if (isPending) {
-    return <div className="h-full text-center align-middle text-xl">Loading...</div>;
-  }
-
-  if (isError) {
-    return <div className="h-full text-center align-middle text-xl">Error loading the page.</div>;
   }
 
   return (
@@ -139,6 +80,7 @@ function Settings() {
                           className="form-control-lg"
                           placeholder="URL of profile picture"
                           {...field}
+                          value={field.value ?? ""}
                         />
                       </FormControl>
                       <FormMessage />
@@ -167,6 +109,7 @@ function Settings() {
                           className="form-control-lg"
                           placeholder="Short bio about you"
                           {...field}
+                          value={field.value ?? ""}
                         />
                       </FormControl>
                       <FormMessage />
@@ -207,7 +150,7 @@ function Settings() {
                   <Button
                     type="button"
                     variant="outline"
-                    className="!border-destructive !text-destructive hover:bg-destructive hover:!text-white"
+                    className="!border-destructive !text-destructive hover:!bg-destructive hover:!text-white"
                     disabled={logoutMutation.isPending || updateProfileMutation.isPending}
                     onClick={() => logoutMutation.mutate()}
                   >

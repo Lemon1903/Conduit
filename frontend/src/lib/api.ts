@@ -1,97 +1,131 @@
-import axios, { AxiosError, type InternalAxiosRequestConfig } from "axios";
-import { toast } from "sonner";
+import * as z from "zod/v4";
 
-interface CustomAxiosRequestConfig extends InternalAxiosRequestConfig {
-  _retry?: boolean;
+import { ARTICLES_PER_PAGE } from "@/constants";
+import { client, setAccessToken } from "@/lib/auth";
+import type articleSchema from "@/schemas/articleSchema";
+import type loginSchema from "@/schemas/loginSchema";
+import type profileSchema from "@/schemas/profileSchema";
+import type registerSchema from "@/schemas/registerSchema";
+import type { IArticle, IArticlesQueryParams, IAuthor, IUser } from "@/types";
+
+export async function login(values: z.infer<typeof loginSchema>) {
+  const loginRes = await client.post("/users/login/", values);
+  setAccessToken(loginRes.data.access_token);
+
+  const profileRes = await client.get("/user/");
+  return profileRes.data;
 }
-let accessToken = "";
-let refreshTokenPromise: Promise<string> | null = null;
 
-const api = axios.create({
-  baseURL: import.meta.env.VITE_API_URL,
-  withCredentials: true,
-});
+export async function register(userData: z.infer<typeof registerSchema>) {
+  const response = await client.post(`/users/`, userData);
+  return response.data;
+}
 
-api.interceptors.request.use(
-  (config) => {
-    if (import.meta.env.DEV) {
-      console.log("Access Token: ", accessToken || "None");
-    }
-    if (accessToken) {
-      config.headers.Authorization = `Bearer ${accessToken}`;
-    }
-    return config;
-  },
-  (error) => Promise.reject(error),
-);
+export async function logout() {
+  await client.post("/users/logout/");
+}
 
-api.interceptors.response.use(
-  (response) => response,
-  async (error: AxiosError) => {
-    console.error(error);
+export async function getUser() {
+  const response = await client.get("/user/");
+  return response.data as IUser;
+}
 
-    const originalRequest: CustomAxiosRequestConfig | undefined = error.config;
+export async function getProfile(username: string) {
+  const response = await client.get(`/profiles/${username}/`);
+  return response.data as IAuthor;
+}
 
-    if (!originalRequest) {
-      console.log("No original request found.");
-      return Promise.reject(error);
-    }
+export async function updateProfile(values: z.infer<typeof profileSchema>) {
+  const response = await client.patch("/user/", values);
+  const userData: IUser = response.data;
+  return userData;
+}
 
-    if (error.message === "Network Error") {
-      toast.error("Network error: Please try again.");
-    }
+export async function getArticles(
+  params?: IArticlesQueryParams,
+  endpoint: string = "/articles",
+  signal?: AbortSignal,
+) {
+  const queryParams = new URLSearchParams({ limit: ARTICLES_PER_PAGE.toString() });
 
-    // Handle 401 Unauthorized errors and token refresh logic (Silent Login)
-    if (error.response?.status === 401 && !originalRequest._retry) {
-      originalRequest._retry = true;
-
-      // If a refresh token promise is already in progress, wait for it to resolve.
-      // This prevents multiple refresh requests from being sent at the same time.
-      if (!refreshTokenPromise) {
-        refreshTokenPromise = refreshAccessToken();
+  if (params) {
+    Object.entries(params).forEach(([key, value]) => {
+      if (value) {
+        queryParams.append(key, value.toString());
       }
+    });
+  }
 
-      try {
-        const newAccessToken = await refreshTokenPromise;
-        setAccessToken(newAccessToken);
-        originalRequest.headers.Authorization = `Bearer ${newAccessToken}`;
-        return api(originalRequest);
-      } catch (refreshError) {
-        console.error("Token refresh failed:", refreshError);
-        toast.error("Session expired. Please log in again.");
-        clearAccessToken();
-        window.location.href = "/login";
-        return Promise.reject(refreshError);
-      } finally {
-        // Need to reset the promise to allow new refresh requests
-        // after the current one is resolved or rejected.
-        // otherwise, it will keep the same promise and 
-        // will still use the old token which could be expired already.
-        refreshTokenPromise = null;
-      }
-    }
-
-    return Promise.reject(error);
-  },
-);
-
-function setAccessToken(token: string) {
-  accessToken = token;
+  const response = await client.get(`${endpoint}?${queryParams}`, { signal });
+  return response.data;
 }
 
-function clearAccessToken() {
-  accessToken = "";
-  refreshTokenPromise = null;
-  localStorage.removeItem("logged-user");
+export async function getArticle(slug?: string, signal?: AbortSignal) {
+  if (!slug) return null;
+  const response = await client.get(`/articles/${slug}/`, { signal });
+  return response.data as IArticle;
 }
 
-async function refreshAccessToken() {
-  console.log("Refreshing token...");
-  const response = await api.post("/users/refresh-token/");
-  const newAccessToken = response.data.access_token;
-  console.log("Token refreshed successfully.");
-  return newAccessToken;
+export async function createArticle(values: z.infer<typeof articleSchema>, signal?: AbortSignal) {
+  const response = await client.post("/articles/", values, { signal });
+  return response.data as IArticle;
 }
 
-export { api, clearAccessToken, setAccessToken };
+export async function updateArticle(
+  slug: string,
+  values: z.infer<typeof articleSchema>,
+  signal?: AbortSignal,
+) {
+  const response = await client.put(`/articles/${slug}/`, values, { signal });
+  return response.data as IArticle;
+  // await new Promise((resolve) => setTimeout(resolve, 1000));
+  // throw new Error("Mocked delete error");
+}
 
+export async function deleteArticle(slug: string, signal?: AbortSignal) {
+  await client.delete(`/articles/${slug}/`, { signal });
+  // await new Promise((resolve) => setTimeout(resolve, 1000));
+  // throw new Error("Mocked delete error");
+}
+
+export async function favoriteArticle(slug: string, signal?: AbortSignal) {
+  await client.post(`/articles/${slug}/favorite/`, { signal });
+}
+
+export async function unfavoriteArticle(slug: string, signal?: AbortSignal) {
+  await client.delete(`/articles/${slug}/favorite/`, { signal });
+}
+
+export async function getComments(slug: string, signal?: AbortSignal) {
+  const response = await client.get(`/articles/${slug}/comments/`, { signal });
+  return response.data;
+}
+
+export async function createComment(slug: string, body: string, signal?: AbortSignal) {
+  const response = await client.post(`/articles/${slug}/comments/`, { body }, { signal });
+  return response.data;
+}
+
+export async function editComment(slug: string, id: number, body: string, signal?: AbortSignal) {
+  const response = await client.patch(`/articles/${slug}/comments/${id}/`, { body }, { signal });
+  return response.data;
+}
+
+export async function deleteComment(slug: string, id: number, signal?: AbortSignal) {
+  await client.delete(`/articles/${slug}/comments/${id}/`, { signal });
+}
+
+export async function getTags(signal?: AbortSignal) {
+  const response = await client.get("/tags/", { signal });
+  return response.data.tags;
+}
+
+export async function followUser(username: string, signal?: AbortSignal) {
+  const response = await client.post(`/profiles/${username}/follow/`, { signal });
+  return response.data.detail as string;
+}
+
+export async function unfollowUser(username: string, signal?: AbortSignal) {
+  const response = await client.delete(`/profiles/${username}/follow/`, { signal });
+  return response.data.detail as string;
+}

@@ -1,26 +1,24 @@
-import type { BasicUser } from "@/types";
+import type { IUser } from "@/types";
 import { create } from "zustand";
-import { persist } from "zustand/middleware";
 
 interface State {
-  user: BasicUser | null;
+  user: IUser | null;
+  isAuthInitialized: boolean;
 }
 
 interface Action {
-  setUser: (user: BasicUser | null) => void;
+  setUser: (user: IUser | null) => void;
+  clearUser: () => void;
+  setIsAuthInitialized: (isInitialized: boolean) => void;
 }
 
-const userStore = create<State & Action>()(
-  persist(
-    (set) => ({
-      user: null,
-      setUser: (user) => set(() => ({ user: user })),
-    }),
-    {
-      name: "logged-user",
-    },
-  ),
-);
+const userStore = create<State & Action>((set) => ({
+  user: null,
+  isAuthInitialized: false,
+  setUser: (user) => set(() => ({ user })),
+  clearUser: () => set(() => ({ user: null })),
+  setIsAuthInitialized: (isAuthInitialized) => set(() => ({ isAuthInitialized })),
+}));
 
 export { userStore };
 

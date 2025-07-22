@@ -1,48 +1,45 @@
 import { zodResolver } from "@hookform/resolvers/zod";
-import { useMutation } from "@tanstack/react-query";
+import { useMutation, useQueryClient } from "@tanstack/react-query";
 import type { AxiosError } from "axios";
 import { useState } from "react";
 import { useForm } from "react-hook-form";
-import { Link, useNavigate } from "react-router";
+import { Link, useLocation, useNavigate } from "react-router";
 import { toast } from "sonner";
 import * as z from "zod/v4";
 
 import { Button } from "@/components/ui/button";
 import { Form, FormControl, FormField, FormItem, FormMessage } from "@/components/ui/form";
 import { Input } from "@/components/ui/input";
-import { api, setAccessToken } from "@/lib/api";
+import { BASE_ARTICLES_KEY } from "@/constants";
+import { login } from "@/lib/api";
 import { getErrorMessage } from "@/lib/utils";
+import loginSchema from "@/schemas/loginSchema";
 import { userStore } from "@/stores/userStore";
 
-const formSchema = z.object({
-  email: z.email(),
-  password: z.string().min(1, { error: "This field is required" }),
-});
-
 function Login() {
-  const form = useForm<z.infer<typeof formSchema>>({
-    resolver: zodResolver(formSchema),
+  const form = useForm<z.infer<typeof loginSchema>>({
+    resolver: zodResolver(loginSchema),
     defaultValues: {
       email: "",
       password: "",
     },
   });
 
+  const queryClient = useQueryClient();
   const navigate = useNavigate();
+  const { state } = useLocation();
   const { setUser } = userStore();
   const [errorMessage, setErrorMessage] = useState<string>("");
 
-  const mutation = useMutation({
-    mutationFn: async (userData: z.infer<typeof formSchema>) => {
-      const response = await api.post("/users/login/", userData);
-      return response.data;
-    },
-    onSuccess: (data) => {
+  const loginMutation = useMutation({
+    mutationFn: login,
+    onSuccess: (user) => {
       toast.success("Logged in successfully!");
-      setAccessToken(data.access_token);
-      setUser({ username: data.username, email: data.email });
+      setUser(user);
       setErrorMessage("");
-      navigate("/");
+      queryClient.removeQueries({ queryKey: [BASE_ARTICLES_KEY] });
+      queryClient.invalidateQueries({ queryKey: ["profile", user.username] });
+      navigate(state?.path || "/");
     },
     onError: (error: AxiosError) => {
       if (error.response?.status === 403) {
@@ -51,8 +48,8 @@ function Login() {
     },
   });
 
-  function onSubmit(values: z.infer<typeof formSchema>) {
-    mutation.mutate(values);
+  function onSubmit(values: z.infer<typeof loginSchema>) {
+    loginMutation.mutate(values);
   }
 
   return (
@@ -104,9 +101,9 @@ function Login() {
                   type="submit"
                   size="lg"
                   className="float-right"
-                  disabled={mutation.isPending}
+                  disabled={loginMutation.isPending}
                 >
-                  {mutation.isPending ? "Logging in..." : "Login"}
+                  {loginMutation.isPending ? "Logging in..." : "Login"}
                 </Button>
               </form>
             </Form>

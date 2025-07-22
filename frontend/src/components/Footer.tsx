@@ -1,6 +1,6 @@
 function Footer() {
   return (
-    <footer>
+    <footer className="!relative">
       <div className="container">
         <a href="/" className="logo-font">
           conduit

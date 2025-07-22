@@ -1,28 +1,24 @@
 import React from "react";
-import { NavLink } from "react-router";
+import { Link, NavLink } from "react-router";
 
-import { DEFAULT_IMAGE_URL } from "@/constants";
+import ProfilePicture from "@/components/shared/ProfilePicture";
+import { Skeleton } from "@/components/ui/skeleton";
 import { cn } from "@/lib/utils";
 import { userStore } from "@/stores/userStore";
+import type { INavigationLink } from "@/types";
 
-type Link = {
-  name: string;
-  path: string;
-  visibility: "public" | "guest" | "user";
-  icon: string | null;
-};
-
-const links: Link[] = [
-  { name: "Home", path: "/", visibility: "public", icon: null },
-  { name: "Sign in", path: "/login", visibility: "guest", icon: null },
-  { name: "Sign up", path: "/register", visibility: "guest", icon: null },
+const links: INavigationLink[] = [
+  { name: "Home", path: "/", visibility: "public" },
+  { name: "Sign in", path: "/login", visibility: "guest" },
+  { name: "Sign up", path: "/register", visibility: "guest" },
   { name: "New Article", path: "/editor", visibility: "user", icon: "ion-compose" },
   { name: "Settings", path: "/settings", visibility: "user", icon: "ion-gear-a" },
-  { name: "Profile", path: "/profile", visibility: "user", icon: null },
+  { name: "Profile", path: "/profile", visibility: "user" },
 ];
 
 function Header() {
-  const { user } = userStore();
+  const { user, isAuthInitialized } = userStore();
+
   const isAuthenticated = !!user;
   const visibleLinks = links.filter((link) => {
     switch (link.visibility) {
@@ -44,33 +40,40 @@ function Header() {
 
   return (
     <nav className="navbar navbar-light">
-      <div className="container">
-        <a className="navbar-brand" href="/">
+      <div className="container flex items-center justify-between">
+        <Link className="navbar-brand" to="/">
           conduit
-        </a>
-        <ul className="nav navbar-nav pull-xs-right">
+        </Link>
+        <ul className="nav navbar-nav pull-xs-right my-auto">
           {visibleLinks.map((link) => (
             <li key={link.path} className="nav-item">
-              <NavLink
-                to={getFullPath(link.path)}
-                className={({ isActive }) => cn("nav-link", isActive && "active")}
-              >
-                <div className="flex items-center gap-1.5">
-                  {link.path === "/profile" && isAuthenticated ? (
-                    <React.Fragment>
-                      <div className="size-6 overflow-hidden rounded-full">
-                        <img src={DEFAULT_IMAGE_URL} alt={user.username} />
-                      </div>
-                      <span>{user.username}</span>
-                    </React.Fragment>
-                  ) : (
-                    <React.Fragment>
-                      {link.icon && <i className={`${link.icon} `} />}
-                      <span>{link.name}</span>
-                    </React.Fragment>
-                  )}
-                </div>
-              </NavLink>
+              {!isAuthInitialized ? (
+                <Skeleton className="h-4 w-20" />
+              ) : (
+                <NavLink
+                  to={getFullPath(link.path)}
+                  end
+                  className={({ isActive }) => cn("nav-link", isActive && "active")}
+                >
+                  <div className="flex items-center gap-1.5">
+                    {link.path === "/profile" && isAuthenticated ? (
+                      <React.Fragment>
+                        <ProfilePicture
+                          imageUrl={user.image}
+                          alt={user.username}
+                          className="size-6"
+                        />
+                        <span>{user.username}</span>
+                      </React.Fragment>
+                    ) : (
+                      <React.Fragment>
+                        {link.icon && <i className={`${link.icon} `} />}
+                        <span>{link.name}</span>
+                      </React.Fragment>
+                    )}
+                  </div>
+                </NavLink>
+              )}
             </li>
           ))}
         </ul>
