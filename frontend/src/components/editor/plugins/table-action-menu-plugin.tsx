@@ -136,7 +136,7 @@ function TableActionMenu({
     columns: 1,
     rows: 1,
   });
-  const [modal, showModal] = useEditorModal();
+  const [modal, _] = useEditorModal();
   const [canMergeCells, setCanMergeCells] = useState(false);
   const [canUnmergeCell, setCanUnmergeCell] = useState(false);
   const [backgroundColor, setBackgroundColor] = useState(
@@ -235,7 +235,7 @@ function TableActionMenu({
 
         const tableObserver = getTableObserverFromTableElement(tableElement);
         if (tableObserver !== null) {
-          tableObserver.clearHighlight();
+          tableObserver.$clearHighlight();
         }
 
         tableNode.markDirty();
@@ -627,7 +627,7 @@ function TableCellActionMenuContainer({
           <PopoverTrigger asChild>
             <button
               type="button"
-              className="relative flex inline-block cursor-pointer items-center justify-center bg-none"
+              className="relative inline-block cursor-pointer items-center justify-center bg-none"
               onClick={(e) => {
                 e.stopPropagation();
                 setIsMenuOpen(!isMenuOpen);

@@ -1,4 +1,4 @@
-import { $isCodeNode, CodeNode, getLanguageFriendlyName, normalizeCodeLang } from "@lexical/code";
+import { $isCodeNode, CodeNode, getLanguageFriendlyName } from "@lexical/code";
 import { useLexicalComposerContext } from "@lexical/react/LexicalComposerContext";
 import { $getNearestNodeFromDOMNode } from "lexical";
 import * as React from "react";
@@ -113,7 +113,7 @@ function CodeActionMenuContainer({ anchorElem }: { anchorElem: HTMLElement }): J
     );
   }, [editor]);
 
-  const normalizedLang = normalizeCodeLang(lang);
+  // const normalizedLang = normalizeCodeLang(lang);
   const codeFriendlyName = getLanguageFriendlyName(lang);
 
   return (

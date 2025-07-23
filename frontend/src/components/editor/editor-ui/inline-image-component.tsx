@@ -21,7 +21,6 @@ import {
   KEY_ESCAPE_COMMAND,
   SELECTION_CHANGE_COMMAND,
 } from "lexical";
-import * as React from "react";
 import { type JSX, Suspense, useCallback, useEffect, useRef, useState } from "react";
 
 import { useEditorModal } from "@/components/editor/editor-hooks/use-modal";
@@ -108,13 +107,13 @@ export function UpdateInlineImageDialog({
   const [showCaption, setShowCaption] = useState(node.getShowCaption());
   const [position, setPosition] = useState<Position>(node.getPosition());
 
-  const handleShowCaptionChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    setShowCaption(e.target.checked);
-  };
+  // const handleShowCaptionChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+  //   setShowCaption(e.target.checked);
+  // };
 
-  const handlePositionChange = (e: React.ChangeEvent<HTMLSelectElement>) => {
-    setPosition(e.target.value as Position);
-  };
+  // const handlePositionChange = (e: React.ChangeEvent<HTMLSelectElement>) => {
+  //   setPosition(e.target.value as Position);
+  // };
 
   const handleOnConfirm = () => {
     const payload = { altText, position, showCaption };
