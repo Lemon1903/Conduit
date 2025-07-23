@@ -74,13 +74,15 @@ function useFavoriteArticleMutation(article: IArticle) {
         });
       };
     },
-    onError: (_, __, rollback) => {
-      const displayTitle = getTruncatedText(article.title, 40);
+    onSuccess: () => {
       queryClient.invalidateQueries(
         getArticlesQueryOptions(FAVORITES_FEED_KEY, user?.username, {
           params: { favorited: user?.username },
         }),
       );
+    },
+    onError: (_, __, rollback) => {
+      const displayTitle = getTruncatedText(article.title, 40);
       toast.error(
         `Failed to updated favorite status on article: "${displayTitle}". Please try again.`,
       );
