@@ -63,9 +63,7 @@ function useFollowMutation(isFollowing: boolean) {
     onSuccess: (successMessage) => {
       toast.success(successMessage);
       // invalidate own feed to reflect follow/unfollow changes
-      queryClient.invalidateQueries({
-        queryKey: getArticlesQueryOptions(USER_FEED_KEY, user?.username).queryKey,
-      });
+      queryClient.invalidateQueries(getArticlesQueryOptions(USER_FEED_KEY, user?.username));
     },
     onError: (error: AxiosError, _, rollback) => {
       toast.error(getErrorMessage(error));

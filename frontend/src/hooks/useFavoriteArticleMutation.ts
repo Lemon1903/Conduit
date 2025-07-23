@@ -1,16 +1,18 @@
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { toast } from "sonner";
 
-import { BASE_ARTICLES_KEY } from "@/constants";
+import { BASE_ARTICLES_KEY, FAVORITES_FEED_KEY } from "@/constants";
 import { favoriteArticle, unfavoriteArticle } from "@/lib/api";
-import { getArticleQueryOptions } from "@/lib/options";
+import { getArticleQueryOptions, getArticlesQueryOptions } from "@/lib/options";
 import { getTruncatedText } from "@/lib/utils";
+import { userStore } from "@/stores/userStore";
 import type { IArticle, IArticlesResponse } from "@/types";
 
 type Context = Array<{ queryKey: Array<unknown>; previous: IArticlesResponse | IArticle }>;
 
 function useFavoriteArticleMutation(article: IArticle) {
   const queryClient = useQueryClient();
+  const { user } = userStore();
 
   function getUpdatedArticle(article: IArticle) {
     return {
@@ -74,6 +76,11 @@ function useFavoriteArticleMutation(article: IArticle) {
     },
     onError: (_, __, rollback) => {
       const displayTitle = getTruncatedText(article.title, 40);
+      queryClient.invalidateQueries(
+        getArticlesQueryOptions(FAVORITES_FEED_KEY, user?.username, {
+          params: { favorited: user?.username },
+        }),
+      );
       toast.error(
         `Failed to updated favorite status on article: "${displayTitle}". Please try again.`,
       );
