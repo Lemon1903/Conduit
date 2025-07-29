@@ -25,8 +25,17 @@ function ArticlePreview({ article }: ArticleProps) {
       >
         <h1>{article.title}</h1>
         <p>{article.description}</p>
-        <span>Read more...</span>
-        <TagList tags={article.tags} />
+        <div className="grid grid-cols-[1fr_2fr]">
+          <span className="!max-w-none">Read more...</span>
+          <TagList
+            tags={article.tags}
+            shouldTruncate
+            classNames={{
+              container: "!mb-0 !flex overflow-hidden",
+              tag: "max-w-9/12 text-ellipsis first:ml-auto",
+            }}
+          />
+        </div>
       </Link>
     </div>
   );

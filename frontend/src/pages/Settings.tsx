@@ -146,11 +146,11 @@ function Settings() {
                   )}
                 />
                 <hr />
-                <div className="flex items-center justify-between gap-4">
+                <div className="flex items-center justify-center gap-4 max-sm:flex-col sm:justify-between">
                   <Button
                     type="button"
                     variant="outline"
-                    className="!border-destructive !text-destructive hover:!bg-destructive hover:!text-white"
+                    className="!border-destructive !text-destructive hover:!bg-destructive hover:!text-white max-sm:order-last"
                     disabled={logoutMutation.isPending || updateProfileMutation.isPending}
                     onClick={() => logoutMutation.mutate()}
                   >

@@ -8,7 +8,6 @@ import { TooltipProvider } from "@/components/ui/tooltip";
 import { FloatingLinkContext } from "@/components/editor/context/floating-link-context";
 import { SharedAutocompleteContext } from "@/components/editor/context/shared-autocomplete-context";
 import { cn } from "@/lib/utils";
-import { useEffect } from "react";
 import { nodes } from "./nodes";
 import { Plugins } from "./plugins";
 
@@ -36,10 +35,6 @@ export function RichTextEditor({
   containerClassName?: string;
   editable?: boolean;
 }) {
-  useEffect(() => {
-    console.log("RichTextEditor mounted:", editorSerializedState);
-  }, []);
-
   return (
     <div
       className={cn(

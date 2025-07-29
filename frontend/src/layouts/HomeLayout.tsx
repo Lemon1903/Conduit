@@ -35,8 +35,8 @@ function HomeLayout() {
       </div>
 
       <div className="page container">
-        <div className="row">
-          <div className="col-md-9">
+        <div className="row max-sm:!m-0">
+          <div className="col-md-9 flex-grow">
             <div className="feed-toggle">
               <ul className="nav nav-pills outline-active !flex">
                 {visibleLinks.map((link) => (

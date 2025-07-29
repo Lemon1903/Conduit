@@ -15,7 +15,10 @@ function Tag({ tag, className }: TagProps) {
   }
 
   return (
-    <Link to={getTagUrl(tag)} className={cn("tag-pill tag-default", className)}>
+    <Link
+      to={getTagUrl(tag)}
+      className={cn("tag-pill tag-default max-w-full overflow-hidden text-ellipsis", className)}
+    >
       {tag}
     </Link>
   );

@@ -8,7 +8,7 @@ interface NoResultsFoundProps {
 
 function NoResultsFound({ message = "No Results Found", onPageChange }: NoResultsFoundProps) {
   return (
-    <div className="my-16 grid place-items-center">
+    <div className="mt-8 mb-16 grid place-items-center">
       <img src={NothingFound} alt="empty results" className="size-32" />
       <div className="mx-auto max-w-96 text-center text-lg">{message}</div>
       {onPageChange && (

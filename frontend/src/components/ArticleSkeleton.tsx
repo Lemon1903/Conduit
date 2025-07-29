@@ -1,8 +1,8 @@
 import DynamicSkeleton from "@/components/shared/DynamicSkeleton";
 import { Skeleton } from "@/components/ui/skeleton";
 
-const BASE_TITLE_WIDTH = 700;
-const ADDITIONAL_TITLE_WIDTH = 100;
+const BASE_TITLE_WIDTH = "95%";
+const ADDITIONAL_TITLE_WIDTH = "5%";
 
 const BASE_USERNAME_WIDTH = 80;
 const ADDITIONAL_USERNAME_WIDTH = 20;
@@ -10,8 +10,8 @@ const ADDITIONAL_USERNAME_WIDTH = 20;
 const BASE_DATE_WIDTH = 96;
 const ADDITIONAL_DATE_WIDTH = 16;
 
-const BASE_DESCRIPTION_WIDTH = 672;
-const ADDITIONAL_DESCRIPTION_WIDTH = 150;
+const BASE_DESCRIPTION_WIDTH = "90%";
+const ADDITIONAL_DESCRIPTION_WIDTH = "10%";
 
 const BASE_BODY_WIDTH = "95%";
 const ADDITIONAL_BODY_WIDTH = "5%";

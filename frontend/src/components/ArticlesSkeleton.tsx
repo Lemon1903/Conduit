@@ -10,11 +10,11 @@ const ADDITIONAL_USERNAME_WIDTH = 20;
 const BASE_DATE_WIDTH = 96;
 const ADDITIONAL_DATE_WIDTH = 16;
 
-const BASE_TITLE_WIDTH = 300;
-const ADDITIONAL_TITLE_WIDTH = 200;
+const BASE_TITLE_WIDTH = "80%";
+const ADDITIONAL_TITLE_WIDTH = "20%";
 
-const BASE_DESCRIPTION_WIDTH = 672;
-const ADDITIONAL_DESCRIPTION_WIDTH = 150;
+const BASE_DESCRIPTION_WIDTH = "95%";
+const ADDITIONAL_DESCRIPTION_WIDTH = "5%";
 
 function ArticlesSkeleton() {
   return Array.from({ length: ARTICLES_PER_PAGE }, (_, idx) => (
@@ -55,7 +55,7 @@ function ArticlesSkeleton() {
         />
         <div className="flex items-center justify-between">
           <Skeleton className="h-3 w-16" />
-          <ul className="tag-list !mb-0 !flex items-center space-x-1">
+          <ul className="!mb-0 !flex items-center space-x-1">
             {Array.from({ length: 2 }, (_, idx) => (
               <DynamicSkeleton key={idx} baseWidth={64} additionalWidth={20} className="h-5" />
             ))}

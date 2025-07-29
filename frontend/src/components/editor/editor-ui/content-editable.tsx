@@ -20,7 +20,7 @@ export function ContentEditable({
       className={
         className ??
         "ContentEditable__root relative block min-h-72 overflow-auto" +
-          (editable ? " px-8 py-4" : "") +
+          (editable ? " px-5 py-4 md:px-8" : "") +
           " focus:outline-none"
       }
       aria-placeholder={placeholder}
@@ -28,7 +28,7 @@ export function ContentEditable({
         <div
           className={
             placeholderClassName ??
-            `text-muted-foreground pointer-events-none absolute top-0 left-0 overflow-hidden px-8 py-[18px] text-ellipsis select-none`
+            `text-muted-foreground pointer-events-none absolute top-0 left-0 overflow-hidden px-5 py-[18px] text-ellipsis select-none md:px-8`
           }
         >
           {placeholder}
