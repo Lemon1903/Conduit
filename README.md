@@ -36,6 +36,10 @@ This codebase was created to demonstrate a fully fledged fullstack application b
 -   **Profile:** User profile pages with their articles and favorites.
 -   **Responsive Design:** Mobile-friendly UI using Tailwind.
 
+## Backend
+
+This frontend application is built to consume the API provided by the [Django Rest Framework Backend](https://github.com/Lemon1903/conduit-backend). Please refer to that repository for backend setup and API documentation.
+
 ## Getting Started
 
 ### Prerequisites
